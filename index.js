@@ -3,6 +3,7 @@ const router = require('koa-router')()
 const logger = require('koa-logger')
 const rpcMiddleware = require('./middleware/rpc')
 const cacheMiddleware = require('./middleware/cache')
+const mqMiddleware = require('./middleware/mq')
 const app = new Koa()
 
 app.use(logger())
@@ -13,9 +14,20 @@ app.use(
 )
 
 app.use(cacheMiddleware())
+app.use(mqMiddleware())
 
 router.get('/', async (ctx) => {
   const userId = ctx.query.userId
+  ctx.channels.logger.sendToQueue(
+    'logger',
+    Buffer.from(
+      JSON.stringify({
+        method: ctx.method,
+        path: ctx.path,
+        userId,
+      })
+    )
+  )
   const cacheKey = `${ctx.method}-${ctx.path}-${userId}`
   let cacheData = await ctx.cache.get(cacheKey)
   console.log('cacheData', cacheData)
