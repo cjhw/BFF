@@ -1,5 +1,5 @@
 {
-  "name": "user",
+  "name": "bff",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,6 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "amqplib": "^0.10.3",
+    "fs-extra": "^11.1.0",
+    "ioredis": "^5.2.4",
+    "koa": "^2.14.1",
+    "koa-logger": "^3.2.1",
+    "koa-router": "^12.0.0",
+    "lru-cache": "^7.14.1",
     "mysql2": "^2.3.3",
     "sofa-rpc-node": "^2.8.0"
   }
