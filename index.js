@@ -2,6 +2,7 @@ const Koa = require('koa')
 const router = require('koa-router')()
 const logger = require('koa-logger')
 const rpcMiddleware = require('./middleware/rpc')
+const cacheMiddleware = require('./middleware/cache')
 const app = new Koa()
 
 app.use(logger())
@@ -11,8 +12,17 @@ app.use(
   })
 )
 
+app.use(cacheMiddleware())
+
 router.get('/', async (ctx) => {
   const userId = ctx.query.userId
+  const cacheKey = `${ctx.method}-${ctx.path}-${userId}`
+  let cacheData = await ctx.cache.get(cacheKey)
+  console.log('cacheData', cacheData)
+  if (cacheData) {
+    ctx.body = cacheData
+    return
+  }
   const {
     rpcConsumers: { user, post },
   } = ctx
@@ -27,10 +37,15 @@ router.get('/', async (ctx) => {
   // 数据脱敏
   userInfo.phone = userInfo.phone.replace(/(\d{3})\d{3}(\d{3})/, '$1***$2')
   userInfo.avatar = `http://img.cai.com/${userInfo.avatar}`
-  ctx.body = {
+
+  cacheData = {
     userInfo,
     postCount,
   }
+
+  await ctx.cache.set(cacheKey, cacheData)
+
+  ctx.body = cacheData
 })
 
 app.use(router.routes()).use(router.allowedMethods())
